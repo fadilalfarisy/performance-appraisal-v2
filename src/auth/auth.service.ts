@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthCredentialsDto } from './dto/auth.dto';
@@ -8,7 +12,7 @@ import * as bcrypt from 'bcrypt';
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   async register(authCredentialsDto: AuthCredentialsDto) {
@@ -24,14 +28,14 @@ export class AuthService {
       email,
       password: hashedPassword,
     });
-    
+
     return { id: user.id, email: user.email };
   }
 
   async login(authCredentialsDto: AuthCredentialsDto) {
     const { email, password } = authCredentialsDto;
     const user = await this.usersService.findByEmail(email);
-    
+
     if (user && (await bcrypt.compare(password, user.password))) {
       const payload = { email: user.email, sub: user.id };
       return {
