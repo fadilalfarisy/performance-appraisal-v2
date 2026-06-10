@@ -5,6 +5,7 @@ import * as schema from '../db/schema';
 import { eq, inArray } from 'drizzle-orm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { UserResponseDto } from './dto/user-response.dto';
 
 export type User = typeof schema.users.$inferSelect;
 export type NewUser = typeof schema.users.$inferInsert;
@@ -13,7 +14,7 @@ export type NewUser = typeof schema.users.$inferInsert;
 export class UsersService {
   constructor(
     @Inject(DB_CONNECTION) private readonly db: NodePgDatabase<typeof schema>,
-  ) {}
+  ) { }
 
   async findByEmail(email: string): Promise<User | undefined> {
     const result = await this.db
@@ -82,16 +83,20 @@ export class UsersService {
     return results;
   }
 
-  async findOne(id: number): Promise<Omit<User, 'password'>> {
+  async findOne(id: number): Promise<UserResponseDto> {
     const result = await this.db
       .select({
         id: schema.users.id,
         email: schema.users.email,
-        employeeId: schema.users.employeeId,
+        employee: {
+          id: schema.employees.id,
+          name: schema.employees.fullName,
+        },
         createdAt: schema.users.createdAt,
         updatedAt: schema.users.updatedAt,
       })
       .from(schema.users)
+      .leftJoin(schema.employees, eq(schema.users.employeeId, schema.employees.id),)
       .where(eq(schema.users.id, id))
       .limit(1);
 

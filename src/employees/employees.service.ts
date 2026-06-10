@@ -4,15 +4,34 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { EmployeeResponse } from './dto/employee-response.dto';
 
 @Injectable()
 export class EmployeesService {
   constructor(
     @Inject(DB_CONNECTION) private readonly db: NodePgDatabase<typeof schema>,
-  ) {}
+  ) { }
 
-  async findAll() {
-    return this.db.select().from(schema.employees);
+  async findAll(): Promise<EmployeeResponse[]> {
+    return await this.db
+      .select({
+        id: schema.employees.id,
+        fullName: schema.employees.fullName,
+        birthDate: schema.employees.birthDate,
+        manager: {
+          id: schema.employees.managerId,
+          name: schema.employees.fullName,
+        },
+        position: {
+          id: schema.employees.positionId,
+          name: schema.employees.fullName,
+        },
+        department: {
+          id: schema.employees.departmentId,
+          name: schema.employees.fullName,
+        },
+      })
+      .from(schema.employees);
   }
 
   async findOne(id: number) {

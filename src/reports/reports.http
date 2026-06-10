@@ -1,0 +1,68 @@
+@baseUrl = http://localhost:3000
+
+# ---------------------------------------------------------
+# Login to get authToken
+# ---------------------------------------------------------
+
+# @name signIn
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+### Save Token Variable
+@authToken = {{signIn.response.body.access_token}}
+
+# ---------------------------------------------------------
+
+### 1. HOD Submit Report
+POST {{baseUrl}}/reports/1/hod/submit
+Authorization: Bearer {{authToken}}
+
+###
+
+### 2. HOD Reject Report
+POST {{baseUrl}}/reports/1/hod/reject
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "note": "Needs more detail in assessment 1"
+}
+
+###
+
+### 3. Manager Approve Report
+POST {{baseUrl}}/reports/1/manager/approve
+Authorization: Bearer {{authToken}}
+
+###
+
+### 4. Manager Reject Report
+POST {{baseUrl}}/reports/1/manager/reject
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "note": "Score override explained but needs clarification"
+}
+
+###
+
+### 5. GM Finalize Report
+POST {{baseUrl}}/reports/1/gm/done
+Authorization: Bearer {{authToken}}
+
+###
+
+### 6. GM Reject Report
+POST {{baseUrl}}/reports/1/gm/reject
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "note": "Incomplete documentation"
+}

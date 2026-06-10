@@ -154,6 +154,7 @@ export const recordCategoryEnum = pgEnum('record_category', [
   'ATTENDANCE',
   'RESPONSIBILITY',
 ]);
+
 export const metricTypeEnum = pgEnum('metric_type', [
   'PRODUCTION',
   'ATTENDANCE',

@@ -1,0 +1,35 @@
+@baseUrl = http://localhost:3000
+@email = admin@example.com
+@password = admin1234
+
+### 1. Register a New User
+# @name signUp
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "role": "ADMINISTRATOR"
+}
+
+###
+
+### 2. Login User
+# @name signIn
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Save Token Variable
+@authToken = {{signIn.response.body.data.access_token}}
+
+###
+
+### 3. Get Current User Profile (Requires JWT)
+GET {{baseUrl}}/auth/profile
+Authorization: Bearer {{authToken}}

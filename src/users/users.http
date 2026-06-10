@@ -1,0 +1,47 @@
+@baseUrl = http://localhost:3000
+
+# ---------------------------------------------------------
+# Login to get authToken
+# ---------------------------------------------------------
+
+# @name signIn
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin1234"
+}
+
+### Save Token Variable
+@authToken = {{signIn.response.body.data.access_token}}
+
+# ---------------------------------------------------------
+
+### 1. Get All Users
+GET {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+
+###
+
+### 2. Get User by ID
+# Replace '1' with actual ID
+GET {{baseUrl}}/users/1
+Authorization: Bearer {{authToken}}
+
+###
+
+### 3. Update User
+PATCH {{baseUrl}}/users/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "email": "updated@example.com"
+}
+
+###
+
+### 4. Delete User
+DELETE {{baseUrl}}/users/1
+Authorization: Bearer {{authToken}}

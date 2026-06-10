@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:3000
+
+# ---------------------------------------------------------
+# Login to get authToken
+# ---------------------------------------------------------
+
+# @name signIn
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin1234"
+}
+
+### Save Token Variable
+@authToken = {{signIn.response.body.data.access_token}}
+
+# ---------------------------------------------------------
+
+### 1. Get All Employees
+GET {{baseUrl}}/employees
+Authorization: Bearer {{authToken}}
+
+###
+
+### 2. Get Employees with Expiring Contracts (HR/Admin)
+GET {{baseUrl}}/employees/contract-expiring
+Authorization: Bearer {{authToken}}
+
+###
+
+### 3. Get Employee by ID
+GET {{baseUrl}}/employees/1
+Authorization: Bearer {{authToken}}
+
+###
+
+### 4. Update Employee (HR/Admin)
+PATCH {{baseUrl}}/employees/1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "jobTitle": "Senior Developer",
+  "department": "Engineering"
+}
+
+###
+
+### 5. Approve Employee for Appraisal (HR/Admin)
+POST {{baseUrl}}/employees/1/approve
+Authorization: Bearer {{authToken}}

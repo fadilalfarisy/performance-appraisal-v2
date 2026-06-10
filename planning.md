@@ -1,54 +1,60 @@
-# Project Plan: Performance Appraisal System
+# Implementation Plan: Administrative Modules
 
-## 1. User Management, Roles & Permissions
-- **RBAC Implementation:** Setup a flexible Role-Based Access Control system.
-- **Roles to Seed:**
-    - `Administrator`: Full system access.
-    - `General Manager`: Final report approval and oversight.
-    - `Manager` (e.g., Production, Logistics, Sales): Department oversight, report review, and assessment overrides.
-    - `Head Department` (e.g., Sewing, Packing, Cutting): Section oversight, initial report submission/rejection.
-    - `Supervisor` (e.g., Sewing, Packing, Cutting): Daily data entry for subordinates.
+This document outlines the strategy for implementing the controllers, services, and modules for the core organizational and administrative components of the Performance Appraisal system.
 
-## 2. Daily Records (Supervisor Module)
-- **Feature:** Supervisors can input daily metrics for their team members.
-- **Categories:**
-    - Quality
-    - Quantity
-    - Attendance
-    - Responsibility
-- **Validation:** Ensure supervisors can only enter data for employees within their assigned section/department.
+## 1. Modules Overview
 
-## 3. Contract Management & Scheduler
-- **Monthly Scheduler:** A cron job running on the **1st day of every month**.
-- **Task:** Generate a list of employees whose contracts expire within that month.
-- **HR Workflow:**
-    - These list of employees will get performance appraisal initially have a status of `DRAFT`.
-    - HR reviews the list.
-    - HR can **Edit** employee details or **Approve** (change status to `PENDING`).
+We will implement the following modules:
+1.  **Departments**: Manage organizational units.
+2.  **Positions**: Manage job titles/roles within departments.
+3.  **Roles & Permissions**: Manage the RBAC (Role-Based Access Control) system.
+4.  **Contracts**: Manage employee contract history and status.
+5.  **Criteria Versions**: Manage versioned appraisal criteria with weights.
 
-## 4. Automated Assessment System
-- **Generation:** System automatically calculates assessment scores based on:
-    - Daily records (Quality, Quantity, Responsibility).
-    - Attendance data (e.g., from spreadsheet or external source).
-- **Manager Overrides:**
-    - If a Manager changes a system-generated value, the system must insert the value as an "Override".
-    - Store both original and modified values for transparency.
+## 2. General Implementation Pattern
 
-## 5. Multi-Level Report Approval Workflow
-- **Workflow Steps:**
-    1. **Head Department (HOD) Review:**
-        - Click **Submit** to move to Manager.
-        - Click **Reject** to revert to `DRAFT` (requires mandatory notes).
-    2. **Manager Review:**
-        - Click **Approve** to move to General Manager.
-        - Click **Reject** to revert to `PENDING` (requires mandatory notes).
-    3. **General Manager (GM) Final Review:**
-        - Click **Done** (Approve) to finalize.
-        - Click **Reject** to revert to `APPROVED` (requires mandatory notes).
+For each module, we will follow the standard NestJS pattern:
+- **DTOs**: Define `Create` and `Update` data transfer objects.
+- **Service**: Implement CRUD logic using Drizzle ORM.
+- **Controller**: Define REST endpoints (GET, POST, PATCH, DELETE).
+- **Module**: Wire up the service and controller.
 
-## 6. Technical Implementation Phases
-- **Phase 1: Database & RBAC:** Update schema with new enums and seed roles/permissions.
-- **Phase 2: Supervisor & Employee Management:** Implement daily records API and HR employee status workflow.
-- **Phase 3: Scheduler & Assessment Engine:** Implement the cron job and logic for automated scoring and overrides.
-- **Phase 4: Approval Workflow:** Implement the state machine for reports (`DRAFT`, `PENDING`, `SUBMITTED`, `APPROVED`, `DONE`, `REJECTED`).
-- **Phase 5: Reporting & UI:** Finalize report generation and auditing.
+## 3. Module Specifics
+
+### 3.1 Departments
+- **Endpoints**: `GET /departments`, `GET /departments/:id`, `POST /departments`, `PATCH /departments/:id`, `DELETE /departments/:id`.
+- **Logic**: Simple CRUD. Ensure a department cannot be deleted if it still has employees.
+
+### 3.2 Positions
+- **Endpoints**: `GET /positions`, `GET /positions/:id`, `POST /positions`, `PATCH /positions/:id`, `DELETE /positions/:id`.
+- **Logic**: Simple CRUD. Ensure a position cannot be deleted if it is assigned to employees.
+
+### 3.3 RBAC (Roles & Permissions)
+- **Roles Endpoints**: `GET /roles`, `POST /roles`, `GET /roles/:id`, `PATCH /roles/:id`, `DELETE /roles/:id`.
+- **Permissions Endpoints**: `GET /permissions`, `POST /permissions`.
+- **Assignment Logic**:
+    - `POST /roles/:id/permissions`: Assign permissions to a role.
+    - `POST /users/:id/roles`: Assign roles to a user (likely in `UsersModule` or `AuthModule`).
+
+### 3.4 Contracts
+- **Endpoints**: `GET /contracts`, `GET /contracts/employee/:employeeId`, `POST /contracts`, `PATCH /contracts/:id`.
+- **Logic**:
+    - When creating a contract, validate that dates don't overlap with existing contracts for the same employee.
+    - Logic to automatically update employee status based on active contracts.
+
+### 3.5 Criteria Versions
+- **Endpoints**: `GET /criteria`, `POST /criteria` (create parent criteria).
+- **Version Endpoints**: `GET /criteria/:id/versions`, `POST /criteria/:id/versions` (create new version).
+- **Logic**:
+    - Enforce non-destructive versioning.
+    - Validate that weights across active criteria versions for a specific appraisal period/type sum to 100%.
+
+## 4. Security & Access Control
+- All administrative endpoints will be protected by `JwtAuthGuard`.
+- We will use `@Roles()` and `@Permissions()` decorators (to be refined/implemented) to restrict access to these modules to Admin/HR roles.
+
+## 5. Timeline & Order of Implementation
+1.  **Departments & Positions** (Foundation for Employees).
+2.  **Roles & Permissions** (Foundation for Security).
+3.  **Contracts** (Critical for Employee Lifecycle).
+4.  **Criteria Versions** (Core Appraisal Logic).

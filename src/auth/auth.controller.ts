@@ -19,7 +19,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @Post('/signup')
   @ApiOperation({ summary: 'Register a new user' })
@@ -40,6 +40,9 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile (Requires JWT)' })
   getProfile(@Request() req: any) {
-    return req.user;
+    return {
+      message: 'Profile retrieved successfully',
+      data: req.user,
+    };
   }
 }

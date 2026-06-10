@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:3000
+
+# ---------------------------------------------------------
+# Login to get authToken
+# ---------------------------------------------------------
+
+# @name signIn
+POST {{baseUrl}}/auth/signin
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+### Save Token Variable
+@authToken = {{signIn.response.body.access_token}}
+
+# ---------------------------------------------------------
+
+### 1. Generate Report for Employee (Admin/HR/HOD)
+POST {{baseUrl}}/assessments/report/generate/1
+Authorization: Bearer {{authToken}}
+
+###
+
+### 2. Get Report with Assessments
+GET {{baseUrl}}/assessments/report/1
+Authorization: Bearer {{authToken}}
+
+###
+
+### 3. Override Assessment Score (Manager/Admin)
+PATCH {{baseUrl}}/assessments/1/override
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "score": 4.5,
+  "note": "Adjusted based on quarterly review"
+}

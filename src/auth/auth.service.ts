@@ -13,13 +13,16 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(authCredentialsDto: AuthCredentialsDto) {
     const { email, password } = authCredentialsDto;
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException({
+        message: 'Email already exists',
+        errorCode: 'AUTH_EMAIL_ALREADY_EXISTS',
+      });
     }
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -29,7 +32,10 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    return { id: user.id, email: user.email };
+    return {
+      message: 'User registered successfully',
+      data: { id: user.id, email: user.email },
+    };
   }
 
   async login(authCredentialsDto: AuthCredentialsDto) {
@@ -39,10 +45,16 @@ export class AuthService {
     if (user && (await bcrypt.compare(password, user.password))) {
       const payload = { email: user.email, sub: user.id };
       return {
-        access_token: this.jwtService.sign(payload),
+        message: 'Login successful',
+        data: {
+          access_token: this.jwtService.sign(payload),
+        },
       };
     } else {
-      throw new UnauthorizedException('Please check your login credentials');
+      throw new UnauthorizedException({
+        message: 'Please check your login credentials',
+        errorCode: 'AUTH_INVALID_CREDENTIALS',
+      });
     }
   }
 }
